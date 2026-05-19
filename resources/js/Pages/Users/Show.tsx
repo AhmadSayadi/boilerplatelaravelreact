@@ -28,7 +28,7 @@ const UserShow = ({ user }: UserShowProps) => {
           </div>
           <div className="ml-auto">
             {hasPermission("edit-users") && (
-              <Button onClick={() => router.visit(`/users/edit/${user.id}`)}>
+              <Button onClick={() => router.visit(`/users/edit/${user.username}`)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </Button>

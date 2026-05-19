@@ -51,7 +51,10 @@ const RoleEdit = ({ role, permissions }: RoleEditProps) => {
     return () => clearTimeout(timer);
   }, [role, form]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = (values: RoleFormValues) => {
+    setIsSubmitting(true);
     router.put(`/roles/${role.id}`, values as any, {
       onSuccess: () => {
         toast.success("Role berhasil diperbarui");
@@ -60,6 +63,7 @@ const RoleEdit = ({ role, permissions }: RoleEditProps) => {
         toast.error("Gagal memperbarui role");
         console.error(errors);
       },
+      onFinish: () => setIsSubmitting(false),
     });
   };
 
@@ -99,12 +103,16 @@ const RoleEdit = ({ role, permissions }: RoleEditProps) => {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <RoleFormFields form={form} permissions={permissions} />
                   <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="outline" onClick={() => router.visit("/roles")}>
+                    <Button type="button" variant="outline" onClick={() => router.visit("/roles")} disabled={isSubmitting}>
                       Batal
                     </Button>
-                    <Button type="submit">
-                      <Save className="mr-2 h-4 w-4" />
-                      Simpan
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Menyimpan..." : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Simpan
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>

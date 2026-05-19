@@ -15,6 +15,21 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles, HasAuditTrails;
 
     /**
+     * The primary key for the model.
+     */
+    protected $primaryKey = 'username';
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the primary key.
+     */
+    protected $keyType = 'string';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

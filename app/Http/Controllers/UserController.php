@@ -95,10 +95,10 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $username)
     {
-        $user = User::with('roles')->findOrFail($id);
-        
+        $user = User::with('roles')->where('username', $username)->firstOrFail();
+
         return Inertia::render('Users/Show', [
             'user' => $user,
         ]);
@@ -107,10 +107,10 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(string $username)
     {
-        $user = User::with('roles')->findOrFail($id);
-        
+        $user = User::with('roles')->where('username', $username)->firstOrFail();
+
         return Inertia::render('Users/Edit', [
             'user' => $user,
             'roles' => Role::all(),
@@ -120,14 +120,14 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $username)
     {
-        $user = User::findOrFail($id);
+        $user = User::where('username', $username)->firstOrFail();
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users,username,' . $id,
-            'email' => 'required|string|email|max:255|unique:users,email,' . $id,
+            'username' => 'required|string|max:255|unique:users,username,' . $username . ',username',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $username . ',username',
             'roles' => 'required|array',
             'status' => 'required|string',
             'location' => 'nullable|string',
@@ -157,16 +157,16 @@ class UserController extends Controller
     public function bulkDestroy(Request $request)
     {
         $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'exists:users,id',
+            'usernames' => 'required|array',
+            'usernames.*' => 'exists:users,username',
         ]);
 
-        $ids = $request->ids;
+        $usernames = $request->usernames;
         $count = 0;
         $skipped = 0;
 
-        foreach ($ids as $id) {
-            $user = User::find($id);
+        foreach ($usernames as $username) {
+            $user = User::find($username);
             if ($user && !$user->hasRole('super-admin')) {
                 $user->delete();
                 $count++;
@@ -185,10 +185,10 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $username)
     {
-        $user = User::findOrFail($id);
-        
+        $user = User::where('username', $username)->firstOrFail();
+
         if ($user->hasRole('super-admin')) {
              return back()->with('error', 'Cannot delete super-admin user.');
         }

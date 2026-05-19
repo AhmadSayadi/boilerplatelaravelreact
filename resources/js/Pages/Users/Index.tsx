@@ -88,11 +88,11 @@ const UsersIndex = ({ users }: UsersIndexProps) => {
   ];
 
   const handleView = (user: User) => {
-    router.visit(`/users/view/${user.id}`);
+    router.visit(`/users/view/${user.username}`);
   };
 
   const handleEdit = (user: User) => {
-    router.visit(`/users/edit/${user.id}`);
+    router.visit(`/users/edit/${user.username}`);
   };
 
   const handleDelete = (user: User) => {
@@ -102,7 +102,7 @@ const UsersIndex = ({ users }: UsersIndexProps) => {
 
   const confirmDelete = () => {
     if (userToDelete) {
-      router.delete(`/users/${userToDelete.id}`, {
+      router.delete(`/users/${userToDelete.username}`, {
         onSuccess: () => {
           toast.success("User berhasil dihapus");
           setDeleteDialogOpen(false);
@@ -117,8 +117,8 @@ const UsersIndex = ({ users }: UsersIndexProps) => {
 
   const handleBulkDelete = (selectedUsers: User[]) => {
     if (confirm(`Apakah Anda yakin ingin menghapus ${selectedUsers.length} user yang dipilih?`)) {
-      const ids = selectedUsers.map(u => u.id);
-      router.post('/users/bulk-delete', { ids }, {
+      const usernames = selectedUsers.map(u => u.username);
+      router.post('/users/bulk-delete', { usernames }, {
         onSuccess: () => {
           toast.success(`${selectedUsers.length} user berhasil dihapus`);
         },
@@ -158,6 +158,7 @@ const UsersIndex = ({ users }: UsersIndexProps) => {
               <CrudDataTable
                 data={users}
                 columns={columns}
+                idAccessor="username"
                 searchKeys={["name", "username", "email", "location"]}
                 filters={[
                   {

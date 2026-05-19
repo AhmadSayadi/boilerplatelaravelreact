@@ -70,15 +70,17 @@ const UserEdit = ({ user, roles }: UserEditProps) => {
     return () => clearTimeout(timer);
   }, [user, form]);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = (values: UserFormValues) => {
-    // Remove password if empty
     const submitValues = { ...values };
     if (!submitValues.password) {
       delete submitValues.password;
       delete submitValues.password_confirmation;
     }
 
-    router.put(`/users/${user.id}`, submitValues as any, {
+    setIsSubmitting(true);
+    router.put(`/users/${user.username}`, submitValues as any, {
       onSuccess: () => {
         toast.success("User berhasil diperbarui");
       },
@@ -86,6 +88,7 @@ const UserEdit = ({ user, roles }: UserEditProps) => {
         toast.error("Gagal memperbarui user");
         console.error(errors);
       },
+      onFinish: () => setIsSubmitting(false),
     });
   };
 
@@ -125,12 +128,16 @@ const UserEdit = ({ user, roles }: UserEditProps) => {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <UserFormFields form={form} roles={roles} isEdit />
                   <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="outline" onClick={() => router.visit("/users")}>
+                    <Button type="button" variant="outline" onClick={() => router.visit("/users")} disabled={isSubmitting}>
                       Batal
                     </Button>
-                    <Button type="submit">
-                      <Save className="mr-2 h-4 w-4" />
-                      Simpan
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Menyimpan..." : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Simpan
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>

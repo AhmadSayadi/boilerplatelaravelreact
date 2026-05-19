@@ -1,7 +1,0 @@
-import { createRoot } from "react-dom/client";
-import "@mantine/core/styles.css";
-import "mantine-datatable/styles.css";
-import App from "./App.tsx";
-import "./index.css";
-
-createRoot(document.getElementById("root")!).render(<App />);

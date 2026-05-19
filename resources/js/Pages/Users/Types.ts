@@ -1,9 +1,8 @@
 import { Role } from "../Roles/Types";
 
 export interface User {
-  id: number;
-  name: string;
   username: string;
+  name: string;
   email: string;
   location?: string;
   status: 'active' | 'inactive';

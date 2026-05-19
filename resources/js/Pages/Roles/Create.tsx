@@ -42,7 +42,10 @@ const RoleCreate = ({ permissions }: RoleCreateProps) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = (values: RoleFormValues) => {
+    setIsSubmitting(true);
     router.post("/roles", values as any, {
       onSuccess: () => {
         toast.success("Role berhasil ditambahkan");
@@ -51,11 +54,13 @@ const RoleCreate = ({ permissions }: RoleCreateProps) => {
         toast.error("Gagal menambahkan role");
         console.error(errors);
       },
+      onFinish: () => setIsSubmitting(false),
     });
   };
 
   return (
     <DashboardLayout>
+      <Head title="Tambah Role Baru" />
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.visit("/roles")}>
@@ -79,12 +84,16 @@ const RoleCreate = ({ permissions }: RoleCreateProps) => {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <RoleFormFields form={form} permissions={permissions} />
                   <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="outline" onClick={() => router.visit("/roles")}>
+                    <Button type="button" variant="outline" onClick={() => router.visit("/roles")} disabled={isSubmitting}>
                       Batal
                     </Button>
-                    <Button type="submit">
-                      <Save className="mr-2 h-4 w-4" />
-                      Simpan
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Menyimpan..." : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Simpan
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>

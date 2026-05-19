@@ -18,13 +18,13 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users');
-    Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy'])->name('users.bulk-delete'); // Changed to POST for array data
+    Route::post('/users/bulk-delete', [UserController::class, 'bulkDestroy'])->name('users.bulk-delete');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/edit/{id}', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
-    Route::get('/users/view/{id}', [UserController::class, 'show'])->name('users.show');
-    Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+    Route::get('/users/edit/{username}', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{username}', [UserController::class, 'update'])->name('users.update');
+    Route::get('/users/view/{username}', [UserController::class, 'show'])->name('users.show');
+    Route::delete('/users/{username}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // Roles
     Route::get('/roles', [RoleController::class, 'index'])->name('roles');

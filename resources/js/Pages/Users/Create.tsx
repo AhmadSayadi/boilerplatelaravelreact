@@ -54,7 +54,10 @@ const UserCreate = ({ roles }: UserCreateProps) => {
     return () => clearTimeout(timer);
   }, []);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = (values: UserFormValues) => {
+    setIsSubmitting(true);
     router.post("/users", values as any, {
       onSuccess: () => {
         toast.success("User berhasil ditambahkan");
@@ -63,6 +66,7 @@ const UserCreate = ({ roles }: UserCreateProps) => {
         toast.error("Gagal menambahkan user");
         console.error(errors);
       },
+      onFinish: () => setIsSubmitting(false),
     });
   };
 
@@ -92,12 +96,16 @@ const UserCreate = ({ roles }: UserCreateProps) => {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <UserFormFields form={form as any} roles={roles} />
                   <div className="flex gap-4 justify-end">
-                    <Button type="button" variant="outline" onClick={() => router.visit("/users")}>
+                    <Button type="button" variant="outline" onClick={() => router.visit("/users")} disabled={isSubmitting}>
                       Batal
                     </Button>
-                    <Button type="submit">
-                      <Save className="mr-2 h-4 w-4" />
-                      Simpan
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Menyimpan..." : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Simpan
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>
