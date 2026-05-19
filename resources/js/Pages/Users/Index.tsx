@@ -116,17 +116,15 @@ const UsersIndex = ({ users }: UsersIndexProps) => {
   };
 
   const handleBulkDelete = (selectedUsers: User[]) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus ${selectedUsers.length} user yang dipilih?`)) {
-      const usernames = selectedUsers.map(u => u.username);
-      router.post('/users/bulk-delete', { usernames }, {
-        onSuccess: () => {
-          toast.success(`${selectedUsers.length} user berhasil dihapus`);
-        },
-        onError: () => {
-          toast.error("Gagal menghapus beberapa user");
-        }
-      });
-    }
+    const usernames = selectedUsers.map(u => u.username);
+    router.post('/users/bulk-delete', { usernames }, {
+      onSuccess: () => {
+        toast.success(`${selectedUsers.length} user berhasil dihapus`);
+      },
+      onError: () => {
+        toast.error("Gagal menghapus beberapa user");
+      }
+    });
   };
 
   return (

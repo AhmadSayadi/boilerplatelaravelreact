@@ -109,17 +109,15 @@ const RolesIndex = ({ roles }: RolesIndexProps) => {
   };
 
   const handleBulkDelete = (selectedRoles: Role[]) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus ${selectedRoles.length} peran yang dipilih?`)) {
-      const ids = selectedRoles.map(r => r.id);
-      router.post('/roles/bulk-delete', { ids }, {
-        onSuccess: () => {
-          toast.success(`${selectedRoles.length} peran berhasil dihapus`);
-        },
-        onError: () => {
-          toast.error("Gagal menghapus beberapa peran");
-        }
-      });
-    }
+    const ids = selectedRoles.map(r => r.id);
+    router.post('/roles/bulk-delete', { ids }, {
+      onSuccess: () => {
+        toast.success(`${selectedRoles.length} peran berhasil dihapus`);
+      },
+      onError: () => {
+        toast.error("Gagal menghapus beberapa peran");
+      }
+    });
   };
 
   return (

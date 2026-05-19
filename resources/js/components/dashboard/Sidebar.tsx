@@ -10,6 +10,7 @@ import {
   Zap,
   UserCog,
   Shield,
+  Package,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ const menuItems: MenuItem[] = [
       { icon: Shield, label: "Peran", path: "/roles", permission: "view-roles" },
     ],
   },
+  { icon: Package, label: "Produk", path: "/products" },
 ];
 
 // Helper to get all paths from menu items

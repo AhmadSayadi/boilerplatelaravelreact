@@ -39,7 +39,7 @@ class RoleController extends Controller
             $query->orderBy('created_at', 'desc');
         }
         
-        $roles = $query->with('permissions')->paginate(10)->onEachSide(1);
+        $roles = $query->with('permissions')->paginate($request->input('per_page', 10))->onEachSide(1);
 
         return Inertia::render('Roles/Index', [
             'roles' => $roles,

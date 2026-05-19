@@ -45,7 +45,7 @@ class UserController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $users = $query->with('roles')->paginate(10)->onEachSide(1);
+        $users = $query->with('roles')->paginate($request->input('per_page', 10))->onEachSide(1);
 
         return Inertia::render('Users/Index', [
             'users' => $users,

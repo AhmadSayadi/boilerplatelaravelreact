@@ -422,6 +422,13 @@ export function CrudDataTable<T extends Record<string, any>>({
             onRecordsPerPageChange={(size) => {
               setPageSize(size);
               setPage(1);
+              if (isPaginated(data)) {
+                router.get(
+                  window.location.pathname,
+                  getQueryParams({ page: 1, per_page: size }),
+                  { preserveState: true, preserveScroll: true }
+                );
+              }
             }}
             page={isPaginated(data) ? data.current_page : page}
             onPageChange={handlePageChange}
