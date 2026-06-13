@@ -3,7 +3,7 @@ import { DataTable, DataTableColumn, DataTableSortStatus } from "mantine-datatab
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Eye, Pencil, Trash2, MoreVertical, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Search, Eye, Pencil, Trash2, MoreVertical, ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,14 +118,23 @@ export function CrudDataTable<T extends Record<string, any>>({
 
   // Check if data is paginated
   const isPaginated = (d: any): d is PaginatedData<T> => {
-    return d && "data" in d && "meta" in d ? false : d && "current_page" in d && "data" in d;
+    return d && "data" in d && "current_page" in d;
   };
 
   const rawData = isPaginated(data) ? data.data : data;
 
   // Client-side state
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const perPage = params.get("per_page");
+      if (perPage && PAGE_SIZES.includes(parseInt(perPage))) {
+        return parseInt(perPage);
+      }
+    }
+    return 10;
+  });
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus<T>>({
     columnAccessor: (defaultSortKey as string) || "id",
     direction: defaultSortDirection,
@@ -138,9 +147,9 @@ export function CrudDataTable<T extends Record<string, any>>({
       const timeoutId = setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
         const currentSearch = params.get("search") || "";
-        
+
         if (search !== currentSearch) {
-           router.get(
+          router.get(
             window.location.pathname,
             getQueryParams({ page: 1 }),
             { preserveState: true, preserveScroll: true }
@@ -189,6 +198,7 @@ export function CrudDataTable<T extends Record<string, any>>({
   const getQueryParams = (overrides: Record<string, any> = {}) => {
     return {
       page: 1,
+      per_page: pageSize,
       search,
       sort: sortStatus.columnAccessor as string,
       direction: sortStatus.direction,
@@ -206,6 +216,18 @@ export function CrudDataTable<T extends Record<string, any>>({
       );
     } else {
       setPage(p);
+    }
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPage(1);
+    if (isPaginated(data)) {
+      router.get(
+        window.location.pathname,
+        getQueryParams({ page: 1, per_page: size }),
+        { preserveState: true, preserveScroll: true }
+      );
     }
   };
 
@@ -230,7 +252,7 @@ export function CrudDataTable<T extends Record<string, any>>({
       router.get(
         window.location.pathname,
         getQueryParams({
-          page: data.current_page,
+          page: isPaginated(data) ? data.current_page : page,
           sort: status.columnAccessor,
           direction: status.direction,
         }),
@@ -250,6 +272,14 @@ export function CrudDataTable<T extends Record<string, any>>({
       setBulkDeleteDialogOpen(false);
     }
   };
+
+  // Pagination helpers
+  const currentPage = isPaginated(data) ? data.current_page : page;
+  const totalRecords = isPaginated(data) ? data.total : filteredData.length;
+  const totalPages = isPaginated(data) ? data.last_page : Math.ceil(filteredData.length / pageSize);
+  const currentPerPage = isPaginated(data) ? data.per_page : pageSize;
+  const fromRecord = isPaginated(data) ? data.from : (page - 1) * pageSize + 1;
+  const toRecord = isPaginated(data) ? data.to : Math.min(page * pageSize, filteredData.length);
 
   // Mobile action menu
   const MobileActions = ({ record }: { record: T }) => (
@@ -416,28 +446,12 @@ export function CrudDataTable<T extends Record<string, any>>({
             scrollAreaProps={{ type: "never" }}
             records={displayData}
             columns={tableColumns}
-            totalRecords={isPaginated(data) ? data.total : filteredData.length}
-            recordsPerPage={isPaginated(data) ? data.per_page : pageSize}
-            recordsPerPageOptions={PAGE_SIZES}
-            onRecordsPerPageChange={(size) => {
-              setPageSize(size);
-              setPage(1);
-              if (isPaginated(data)) {
-                router.get(
-                  window.location.pathname,
-                  getQueryParams({ page: 1, per_page: size }),
-                  { preserveState: true, preserveScroll: true }
-                );
-              }
-            }}
-            page={isPaginated(data) ? data.current_page : page}
-            onPageChange={handlePageChange}
             sortStatus={sortStatus}
             onSortStatusChange={handleSortStatusChange}
             sortIcons={{
               sorted: (
                 <IconWrapper>
-                  {sortStatus.direction === 'asc' ? (
+                  {sortStatus.direction === "asc" ? (
                     <ChevronUp className="h-4 w-4" />
                   ) : (
                     <ChevronDown className="h-4 w-4" />
@@ -454,8 +468,6 @@ export function CrudDataTable<T extends Record<string, any>>({
             onSelectedRecordsChange={isMobile ? undefined : setSelectedRecords}
             idAccessor={idAccessor as string}
             noRecordsText={`Tidak ada ${entityName} ditemukan`}
-            paginationText={({ from, to, totalRecords }) => `${from} - ${to} / ${totalRecords}`}
-            recordsPerPageLabel=""
             styles={{
               root: {
                 fontSize: "0.875rem",
@@ -467,6 +479,78 @@ export function CrudDataTable<T extends Record<string, any>>({
               },
             }}
           />
+        </div>
+      </div>
+
+      {/* Custom Pagination Footer */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-border">
+        {/* Records per page */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Tampilkan</span>
+          <Select
+            value={currentPerPage.toString()}
+            onValueChange={(v) => handlePageSizeChange(parseInt(v))}
+          >
+            <SelectTrigger className="w-[70px] h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZES.map((size) => (
+                <SelectItem key={size} value={size.toString()}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="text-sm text-muted-foreground">
+            dari {totalRecords} {entityName}
+          </span>
+        </div>
+
+        {/* Page info + navigation */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground mr-2">
+            {totalRecords > 0 ? `${fromRecord} - ${toRecord}` : "0"} / {totalRecords}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handlePageChange(1)}
+            disabled={currentPage <= 1}
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm text-muted-foreground px-2">
+            {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handlePageChange(totalPages)}
+            disabled={currentPage >= totalPages}
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

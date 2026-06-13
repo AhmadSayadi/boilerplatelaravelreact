@@ -1,5 +1,11 @@
 export { CrudDataTable } from "./CrudDataTable";
-export type { CrudDataTableProps, FilterConfig, FilterOption } from "./CrudDataTable";
+export type { CrudDataTableProps, PaginatedData, FilterConfig, FilterOption } from "./CrudDataTable";
+export { CrudIndexLayout } from "./CrudIndexLayout";
+export type { CrudIndexLayoutProps } from "./CrudIndexLayout";
+export { CrudFormLayout } from "./CrudFormLayout";
+export type { CrudFormLayoutProps } from "./CrudFormLayout";
+export { CrudShowLayout } from "./CrudShowLayout";
+export type { CrudShowLayoutProps, DetailField } from "./CrudShowLayout";
 export { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 export { TableSkeleton } from "./TableSkeleton";
 export { PageSkeleton } from "./PageSkeleton";
