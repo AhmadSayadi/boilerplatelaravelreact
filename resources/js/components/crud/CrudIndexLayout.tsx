@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { CrudDataTable, PaginatedData, FilterConfig } from "./CrudDataTable";
+import { CrudDataTable, PaginatedData, FilterConfig, ActionConfig } from "./CrudDataTable";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { PageSkeleton, TableSkeleton } from "./index";
 import { DataTableColumn } from "mantine-datatable";
@@ -63,6 +63,8 @@ export interface CrudIndexLayoutProps<T> {
   headerExtra?: ReactNode;
   /** Custom render actions per row */
   renderActions?: (record: T) => ReactNode;
+  /** Additional custom actions per row (e.g., Approve, Duplicate, Export) */
+  extraActions?: ActionConfig<T>[];
   /** Default sort key */
   defaultSortKey?: keyof T;
   /** Default sort direction */
@@ -96,6 +98,7 @@ export function CrudIndexLayout<T extends Record<string, any>>({
   bulkDeleteRoute,
   headerExtra,
   renderActions,
+  extraActions = [],
   defaultSortKey,
   defaultSortDirection = "desc",
 }: CrudIndexLayoutProps<T>) {
@@ -212,6 +215,7 @@ export function CrudIndexLayout<T extends Record<string, any>>({
                 onDelete={canDelete ? handleDelete : undefined}
                 onBulkDelete={canDelete ? handleBulkDelete : undefined}
                 renderActions={renderActions}
+                extraActions={extraActions}
                 defaultSortKey={defaultSortKey}
                 defaultSortDirection={defaultSortDirection}
               />

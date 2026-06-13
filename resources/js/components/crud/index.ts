@@ -1,5 +1,5 @@
 export { CrudDataTable } from "./CrudDataTable";
-export type { CrudDataTableProps, PaginatedData, FilterConfig, FilterOption } from "./CrudDataTable";
+export type { CrudDataTableProps, PaginatedData, FilterConfig, FilterOption, ActionConfig } from "./CrudDataTable";
 export { CrudIndexLayout } from "./CrudIndexLayout";
 export type { CrudIndexLayoutProps } from "./CrudIndexLayout";
 export { CrudFormLayout } from "./CrudFormLayout";

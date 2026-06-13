@@ -3,11 +3,12 @@ import { DataTable, DataTableColumn, DataTableSortStatus } from "mantine-datatab
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Eye, Pencil, Trash2, MoreVertical, ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Search, Eye, Pencil, Trash2, MoreVertical, ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, LucideIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import sortBy from "lodash/sortBy";
@@ -42,6 +43,23 @@ export interface FilterConfig {
   options: FilterOption[];
 }
 
+export interface ActionConfig<T> {
+  /** Unique key for this action */
+  key: string;
+  /** Label shown in mobile dropdown */
+  label: string;
+  /** Lucide icon component */
+  icon: LucideIcon;
+  /** Handler when action is clicked */
+  onClick: (record: T) => void;
+  /** Custom class for the button (optional) */
+  className?: string;
+  /** Whether to show this action for a specific record (optional, default: true) */
+  visible?: (record: T) => boolean;
+  /** Separator before this action in mobile menu (optional) */
+  separator?: boolean;
+}
+
 export interface CrudDataTableProps<T> {
   data: T[] | PaginatedData<T>;
   columns: DataTableColumn<T>[];
@@ -59,6 +77,8 @@ export interface CrudDataTableProps<T> {
   defaultSortKey?: keyof T;
   defaultSortDirection?: "asc" | "desc";
   renderActions?: (record: T) => ReactNode;
+  /** Additional custom actions (shown alongside view/edit/delete) */
+  extraActions?: ActionConfig<T>[];
 }
 
 const PAGE_SIZES = [5, 10, 25, 50];
@@ -89,6 +109,7 @@ export function CrudDataTable<T extends Record<string, any>>({
   defaultSortKey,
   defaultSortDirection = "desc",
   renderActions,
+  extraActions = [],
 }: CrudDataTableProps<T>) {
   const isMobile = useIsMobile();
   const swipeContainerRef = useSwipeScroll(isMobile);
@@ -302,11 +323,29 @@ export function CrudDataTable<T extends Record<string, any>>({
             Edit
           </DropdownMenuItem>
         )}
+        {extraActions.length > 0 && (onView || onEdit) && <DropdownMenuSeparator />}
+        {extraActions.map((action) => {
+          const isVisible = action.visible ? action.visible(record) : true;
+          if (!isVisible) return null;
+          const Icon = action.icon;
+          return (
+            <span key={action.key}>
+              {action.separator && <DropdownMenuSeparator />}
+              <DropdownMenuItem onClick={() => action.onClick(record)} className={action.className}>
+                <Icon className="h-4 w-4 mr-2" />
+                {action.label}
+              </DropdownMenuItem>
+            </span>
+          );
+        })}
         {onDelete && (
-          <DropdownMenuItem onClick={() => onDelete(record)} className="text-destructive focus:text-destructive">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Hapus
-          </DropdownMenuItem>
+          <>
+            {(onView || onEdit || extraActions.length > 0) && <DropdownMenuSeparator />}
+            <DropdownMenuItem onClick={() => onDelete(record)} className="text-destructive focus:text-destructive">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Hapus
+            </DropdownMenuItem>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -316,12 +355,18 @@ export function CrudDataTable<T extends Record<string, any>>({
   const tableColumns: DataTableColumn<T>[] = useMemo(() => {
     const cols = [...columns];
 
-    if (showActions && (onView || onEdit || onDelete || renderActions)) {
+    if (showActions && (onView || onEdit || onDelete || renderActions || extraActions.length > 0)) {
+      // Calculate dynamic width based on number of actions
+      const baseActionCount = [onView, onEdit, onDelete].filter(Boolean).length;
+      const extraVisibleCount = extraActions.length;
+      const totalActions = baseActionCount + extraVisibleCount;
+      const dynamicWidth = actionsWidth || Math.max(120, totalActions * 40);
+
       cols.push({
         accessor: "actions" as keyof T,
         title: "Aksi",
         textAlign: "center",
-        width: actionsWidth,
+        width: dynamicWidth,
         render: (record) =>
           renderActions ? (
             renderActions(record)
@@ -335,6 +380,7 @@ export function CrudDataTable<T extends Record<string, any>>({
                     size="icon"
                     className="h-8 w-8 text-success hover:text-success hover:bg-success/10"
                     onClick={() => onView(record)}
+                    title="Lihat"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -345,16 +391,35 @@ export function CrudDataTable<T extends Record<string, any>>({
                     size="icon"
                     className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
                     onClick={() => onEdit(record)}
+                    title="Edit"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
                 )}
+                {extraActions.map((action) => {
+                  const isVisible = action.visible ? action.visible(record) : true;
+                  if (!isVisible) return null;
+                  const Icon = action.icon;
+                  return (
+                    <Button
+                      key={action.key}
+                      variant="ghost"
+                      size="icon"
+                      className={action.className || "h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"}
+                      onClick={() => action.onClick(record)}
+                      title={action.label}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </Button>
+                  );
+                })}
                 {onDelete && (
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => onDelete(record)}
+                    title="Hapus"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -370,7 +435,7 @@ export function CrudDataTable<T extends Record<string, any>>({
     }
 
     return cols;
-  }, [columns, showActions, onView, onEdit, onDelete, renderActions, actionsWidth]);
+  }, [columns, showActions, onView, onEdit, onDelete, renderActions, actionsWidth, extraActions]);
 
   return (
     <div>
